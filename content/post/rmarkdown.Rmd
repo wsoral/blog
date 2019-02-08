@@ -3,54 +3,113 @@ title: "Bayesian moderation analysis"
 author: "Wiktor Soral"
 slug: test
 categories: []
-tags: ['Test']
+tags: ['Bayesian']
 date: "7 02 2019"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
+
+*This post is the first of a series of short tutorials on how to approach statistical analyses common among social psychologist using Bayesian approach and R package - brms*
+
+Moderation analysis is one the most widely used tools to approach interactions in regression models with at least 1 continuous term. Its popularity has outbursted since the release of an SPSS/SAS macro [PROCESS](https://www.processmacro.org/). PROCESS is easy to use and allows to fit a variety of models. However, it lacks certain capabilities (like ability to fit multilevel models or generalized regression models or mix of both). Also PROCESS cannot handle Bayesian moderation analysis. One can use [JASP](https://jasp-stats.org/) to conduct Baysian regression analysis with interaction terms, but sadly it's post-processing capabilities are quite limited (at least to me).
+
+In this post I will show, how to easily and in just a few steps fit Bayesian moderation model in R. As some of my colleagues admitted lack of R package that would replace PROCESS is one of the major factors that restrains them from swapping SPSS with R. Actually there are certain packages that aspire to replace PROCESS in R. Here, however I would to show you that you don't need to use a specialized package and you can go on with a quite general one - `brms`. 
+
+Lets start with something relatively simple and easy to follow.
 
 ## Continuous and categorical predictors
 
+In this post I will extensively use `tidyverse`. 
+
 ```{r}
+# install.packages("tidyverse")
+# install.packages("carData")
 library(tidyverse)
-library(carData)
+library(carData) # for an example dataset
+
 data(Moore)
+
 Moore %>% 
   glimpse()
 ```
 
+By default contrast are set to `contr.treatment`. This means that a $j$ regression coefficient a categorical variable is interpreted as a difference of means between a level $j+1$ of the variable and a reference level $1$. 
+
 ```{r}
 contrasts(Moore$partner.status)
 ```
+
+We switch contrasts to `contr.sum` for the categorical variable.
 
 ```{r}
 contrasts(Moore$partner.status) <- "contr.sum"
 contrasts(Moore$partner.status)
 ```
 
+We standardize the continuous variable - fscore.
 
 ```{r}
 Moore %>% 
-  mutate(fscore_c = fscore - mean(fscore)) -> Moore
+  mutate(fscore_c = (fscore - mean(fscore))/sd(fscore)) -> Moore
 ```
 
-```{r results='hide'}
+We fit our model with `brms` package. Both installation and fitting may take a while.
+
+```{r}
 library(brms)
 theme_set(theme_default())
+```
+
+We will use weakly informative priors for regression coefficients. By defaults `brms` uses robust Student-t prior for model error. *Robust* means here robust to potential outliers.
+
+```{r}
+prior <- prior(normal(0, 10), class = b)
+```
+
+Fitting is quite straigthforward. If your run your model on your laptop with less than 4 cores, it is better to change the value of `cores` to 2 or even 1.
+
+```{r results='hide'}
+# install.packages("brms")
+
 fit1 <- 
   brm(data = Moore,
       conformity ~ partner.status * fscore_c, ## means partner.status + fscore_c + partner.status:fscore_c
+      prior = prior, sample_prior = T,
       chains = 4, cores = 4)
 ```
 
+We can start with printing summary of posterior distribution of our model's coefficients.
 
 ```{r}
-fit1
+fit1 %>% 
+  posterior_summary() %>% 
+  knitr::kable(digits = 2)
 ```
+
+Compare it to our prior distribution.
+
+```{r}
+prior_summary(fit1)
+```
+
+
+Here we print simple slopes.
 
 ```{r}
 marginal_effects(fit1, "partner.status:fscore_c")
+```
+
+```{r}
+marginal_effects(fit1, "fscore_c:partner.status")
+```
+
+We print the results of simple slopes analysis.
+
+```{r}
+hypothesis(fit1, c(highF="partner.status1 + partner.status1:fscore_c = 0",
+                   mediumF="partner.status1 = 0",
+                   lowF="partner.status1 - partner.status1:fscore_c = 0"))
 ```
 

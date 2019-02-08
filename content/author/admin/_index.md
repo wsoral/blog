@@ -78,4 +78,4 @@ user_groups = ["Researchers", "Visitors"]
 
 Wiktor Soral is an assistant professor of social psychology at the University of Warsaw and a senior researcher in the Center for Research on Prejudice. His research interests include hate speech, conspiracy beliefs, and reactions to control deprivation. He currently works in a project devoted to finding what socio-psychological mechanisms enhance the spread of hate speech thoughout the societies.
 
-He is a promoter of using free statistical software (R, Python, or Julia) and Bayesian statistics. 
+He is a local promoter of using free statistical software (R, Python, or Julia) and Bayesian statistics. 
