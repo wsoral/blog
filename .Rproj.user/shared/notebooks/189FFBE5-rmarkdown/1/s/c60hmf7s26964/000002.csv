@@ -1,0 +1,234 @@
+"0","library(brms)"
+"2","Ładowanie wymaganego pakietu: Rcpp
+"
+"2","Loading 'brms' package (version 2.7.0). Useful instructions
+can be found by typing help('brms'). A more detailed introduction
+to the package is available through vignette('brms_overview').
+Run theme_set(theme_default()) to use the default bayesplot theme.
+"
+"0","fit1 <- "
+"0","  brm(data = Moore,"
+"0","      conformity ~ partner.status * fscore, ## means partner.status + fscore + partner.status:fscore"
+"0","      chains = 4, cores = 4)"
+"2","Compiling the C++ model
+"
+"2","Start sampling
+"
+"1","starting worker pid=4090 on localhost:11108 at 11:45:37.602
+"
+"1","starting worker pid=4099 on localhost:11108 at 11:45:37.750
+"
+"1","starting worker pid=4108 on localhost:11108 at 11:45:37.900
+"
+"1","starting worker pid=4117 on localhost:11108 at 11:45:38.050
+"
+"1","
+SAMPLING FOR MODEL '6f69228fa83ce7cf7e9472146513cbcc' NOW (CHAIN 1).
+"
+"1","Chain 1: 
+"
+"1","Chain 1: Gradient evaluation took 1.7e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.17 seconds.
+Chain 1: Adjust your expectations accordingly!
+Chain 1: 
+Chain 1: 
+"
+"1","Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+"
+"1","
+SAMPLING FOR MODEL '6f69228fa83ce7cf7e9472146513cbcc' NOW (CHAIN "
+"1","2).
+"
+"1","Chain 2: 
+"
+"1","Chain 2: Gradient evaluation took 1.9e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.19 seconds.
+Chain 2: Adjust your expectations accordingly!
+Chain 2: 
+Chain 2: 
+"
+"1","Chain 2: Iteration:    1 / 2000 [  0%]  (Warmup)
+"
+"1","Chain 2: Iteration:  200 / 2000 [ 10%]  (Warmup)
+"
+"1","Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+"
+"1","Chain 2: Iteration:  400 / 2000 [ 20%]  (Warmup)
+"
+"1","Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+"
+"1","Chain 2: Iteration:  600 / 2000 [ 30%]  (Warmup)
+"
+"1","Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+"
+"1","Chain 2: Iteration:  800 / 2000 [ 40%]  (Warmup)"
+"1","
+"
+"1","
+SAMPLING FOR MODEL '6f69228fa83ce7cf7e9472146513cbcc"
+"1","' NOW (CHAIN 3).
+"
+"1","Chain "
+"1","3"
+"1",": "
+"1","
+"
+"1","Chain "
+"1","3"
+"1",": "
+"1","Gradient evaluation took 2.1e-05 seconds"
+"1","
+"
+"1","Chain "
+"1","3"
+"1",": "
+"1","1000 transitions using 10 leapfrog steps per transition would take 0.21 seconds."
+"1","
+Chain 3: Adjust your expectations accordingly!
+"
+"1","Chain 3: 
+Chain 3: 
+"
+"1","Chain "
+"1","3"
+"1",": "
+"1","Iteration:    1 / 2000 [  0%]  (Warmup)
+"
+"1","Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+"
+"1","Chain 2: Iteration: 1000 / 2000 [ 50%]  (Warmup)"
+"1","
+Chain 2: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+"
+"1","Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+"
+"1","Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+"
+"1","Chain "
+"1","2"
+"1",": "
+"1","Iteration: 1200 / 2000 [ 60%]  (Sampling)"
+"1","
+"
+"1","Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+"
+"1","Chain 2: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+"
+"1","Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)"
+"1","
+"
+"1","Chain Chain 12: : Iteration: 1600 / 2000 [ 80%]  (Sampling)
+"
+"1","Iteration: 1600 / 2000 [ 80%]  (Sampling)
+"
+"1","Chain 3: Iteration:  200 / 2000 [ 10%]  (Warmup)
+"
+"1","Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+"
+"1","Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)"
+"1","
+"
+"1","Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+"
+"1","Chain 1: 
+Chain 1:  Elapsed Time: 0.115454 seconds (Warm-up)
+Chain 1:                0.067812 seconds (Sampling)
+Chain 1:                0.183266 seconds (Total)
+Chain 1: 
+"
+"1","Chain 3"
+"1",": Iteration:  400 / 2000 [ 20%]  (Warmup)
+"
+"1","Chain 2"
+"1",": Iteration: 2000 / 2000 [100%]  (Sampling)
+"
+"1","Chain 2"
+"1",": 
+Chain 2:  Elapsed Time: 0.09972 seconds (Warm-up)
+Chain 2:                0.07442 seconds (Sampling)
+Chain 2:                0.17414 seconds (Total)
+Chain 2: 
+"
+"1","Chain "
+"1","3"
+"1",": Iteration:  600 / 2000 [ 30%]  (Warmup)
+"
+"1","Chain 3: Iteration:  800 / 2000 [ 40%]  (Warmup)
+"
+"1","
+SAMPLING FOR MODEL '6f69228fa83ce7cf7e9472146513cbcc' NOW (CHAIN "
+"1","4).
+"
+"1","Chain 4: 
+"
+"1","Chain 4: Gradient evaluation took 1.3e-05 seconds
+Chain 4: 1000 transitions using 10 leapfrog steps per transition would take 0.13 seconds.
+Chain 4: Adjust your expectations accordingly!
+Chain 4: 
+Chain 4: 
+"
+"1","Chain 4: Iteration:    1 / 2000 [  0%]  (Warmup)
+"
+"1","Chain 3: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+"
+"1","Chain 3: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+"
+"1","Chain 3: Iteration: 1200 / 2000 [ 60%]  (Sampling)"
+"1","
+"
+"1","Chain 3: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+"
+"1","Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+"
+"1","Chain 4: Iteration:  200 / 2000 [ 10%]  (Warmup)
+"
+"1","Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+"
+"1","Chain "
+"1","4"
+"1",": "
+"1","Iteration:  400 / 2000 [ 20%]  (Warmup)"
+"1","
+"
+"1","Chain "
+"1","4"
+"1",": Iteration:  600 / 2000 [ 30%]  (Warmup)
+"
+"1","Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
+"
+"1","Chain "
+"1","3"
+"1",": "
+"1","
+"
+"1","Chain 3:  Elapsed Time: 0.126528 seconds (Warm-up)
+Chain 3:                0.102612 seconds (Sampling)
+Chain 3:                0.22914 seconds (Total)
+Chain 3: 
+"
+"1","Chain "
+"1","4"
+"1",": Iteration:  800 / 2000 [ 40%]  (Warmup)"
+"1","
+"
+"1","Chain 4: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+"
+"1","Chain 4: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+"
+"1","Chain 4: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+"
+"1","Chain 4: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+"
+"1","Chain 4: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+"
+"1","Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+"
+"1","Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
+"
+"1","Chain 4: 
+"
+"1","Chain 4:  Elapsed Time: 0.140438 seconds (Warm-up)
+Chain 4:                0.075289 seconds (Sampling)
+Chain 4:                0.215727 seconds (Total)
+Chain 4: 
+"

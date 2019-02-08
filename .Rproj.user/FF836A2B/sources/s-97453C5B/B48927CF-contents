@@ -1,0 +1,72 @@
++++
+title = "Exposure to hate speech increases prejudice through desensitization"
+date = 2017-11-02
+draft = false
+
+# Authors. Comma separated list, e.g. `["Bob Smith", "David Jones"]`.
+authors = ["Wiktor Soral","Michał Bilewicz", "Mikołaj Winiewski"]
+
+# Publication type.
+# Legend:
+# 0 = Uncategorized
+# 1 = Conference paper
+# 2 = Journal article
+# 3 = Manuscript
+# 4 = Report
+# 5 = Book
+# 6 = Book section
+publication_types = ["2"]
+
+# Publication name and optional abbreviated version.
+publication = "Aggressive Behavior"
+
+# Abstract and optional shortened version.
+abstract = "In three studies (two representative nationwide surveys, N = 1,007, N = 682; and one experimental, N = 76) we explored the effects of exposure to hate speech on outgroup prejudice. Following the General Aggression Model, we suggest that frequent and repetitive exposure to hate speech leads to desensitization to this form of verbal violence and subsequently to lower evaluations of the victims and greater distancing, thus increasing outgroup prejudice. In the first survey study, we found that lower sensitivity to hate speech was a positive mediator of the relationship between frequent exposure to hate speech and outgroup prejudice. In the second study, we obtained a crucial confirmation of these effects. After desensitization training individuals were less sensitive to hate speech and more prejudiced toward hate speech victims than their counterparts in the control condition. In the final study, we replicated several previous effects and additionally found that the effects of exposure to hate speech on prejudice were mediated by a lower sensitivity to hate speech, and not by lower sensitivity to social norms. Altogether, our studies are the first to elucidate the effects of exposure to hate speech on outgroup prejudice. "
+
+# Is this a featured publication? (true/false)
+featured = false
+
+# Projects (optional).
+#   Associate this publication with one or more of your projects.
+#   Simply enter your project's folder or file name without extension.
+#   E.g. `projects = ["deep-learning"]` references 
+#   `content/project/deep-learning/index.md`.
+#   Otherwise, set `projects = []`.
+projects = []
+
+# Tags (optional).
+#   Set `tags = []` for no tags, or use the form `tags = ["A Tag", "Another Tag"]` for one or more tags.
+tags = []
+
+# Links (optional).
+#url_pdf = ""
+#url_preprint = ""
+#url_code = "#"
+#url_dataset = "#"
+#url_project = ""
+#url_slides = "#"
+#url_video = "#"
+#url_poster = "#"
+#url_source = "#"
+
+# Custom links (optional).
+#   Uncomment line below to enable. For multiple links, use the form `[{...}, {...}, {...}]`.
+#url_custom = [{name = "Custom Link", url = "http://example.org"}]
+
+# Digital Object Identifier (DOI)
+doi = "10.1002/ab.21737"
+
+# Does this page contain LaTeX math? (true/false)
+math = false
+
+# Featured image
+# To use, add an image named `featured.jpg/png` to your page's folder. 
+[image]
+  # Caption (optional)
+  # caption = "Image credit: [**Unsplash**](https://unsplash.com/photos/pLCdAaMFLTE)"
+
+  # Focal point (optional)
+  # Options: Smart, Center, TopLeft, Top, TopRight, Left, Right, BottomLeft, Bottom, BottomRight
+  focal_point = ""
++++
+

@@ -1,0 +1,20 @@
+"0","library(tidyverse)"
+"0","library(carData)"
+"0","data(Moore)"
+"0","Moore %>% "
+"0","  glimpse()"
+"1","Observations: 45
+"
+"1","Variables: 4
+"
+"1","$ partner.status [3m[38;5;246m<fct>[39m[23m low, low, low, low, low, low, low, low, low, low, low, low,…
+"
+"1",""
+"1","$ conformity     [3m[38;5;246m<int>[39m[23m 8, 4, 8, 7, 10, 6, 12, 4, 13, 12, 4, 13, 7, 9, 9, 24, 6, 7,…
+"
+"1",""
+"1","$ fcategory      [3m[38;5;246m<fct>[39m[23m low, high, high, low, low, low, medium, medium, low, low, m…
+"
+"1",""
+"1","$ fscore         [3m[38;5;246m<int>[39m[23m 37, 57, 65, 20, 36, 18, 51, 44, 31, 36, 42, 56, 28, 43, 65,…
+"

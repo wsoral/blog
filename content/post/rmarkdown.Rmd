@@ -1,0 +1,56 @@
+---
+title: "Bayesian moderation analysis"
+author: "Wiktor Soral"
+slug: test
+categories: []
+tags: ['Test']
+date: "7 02 2019"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Continuous and categorical predictors
+
+```{r}
+library(tidyverse)
+library(carData)
+data(Moore)
+Moore %>% 
+  glimpse()
+```
+
+```{r}
+contrasts(Moore$partner.status)
+```
+
+```{r}
+contrasts(Moore$partner.status) <- "contr.sum"
+contrasts(Moore$partner.status)
+```
+
+
+```{r}
+Moore %>% 
+  mutate(fscore_c = fscore - mean(fscore)) -> Moore
+```
+
+```{r results='hide'}
+library(brms)
+theme_set(theme_default())
+fit1 <- 
+  brm(data = Moore,
+      conformity ~ partner.status * fscore_c, ## means partner.status + fscore_c + partner.status:fscore_c
+      chains = 4, cores = 4)
+```
+
+
+```{r}
+fit1
+```
+
+```{r}
+marginal_effects(fit1, "partner.status:fscore_c")
+```
+
