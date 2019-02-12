@@ -4,7 +4,7 @@ author: "Wiktor Soral"
 slug: test
 categories: []
 tags: ['Bayesian']
-date: "7 02 2019"
+date: "2019-02-11"
 ---
 
 ```{r setup, include=FALSE}
@@ -15,11 +15,62 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 Moderation analysis is one the most widely used tools to approach interactions in regression models with at least 1 continuous term. Its popularity has outbursted since the release of an SPSS/SAS macro [PROCESS](https://www.processmacro.org/). PROCESS is easy to use and allows to fit a variety of models. However, it lacks certain capabilities (like ability to fit multilevel models or generalized regression models or mix of both). Also PROCESS cannot handle Bayesian moderation analysis. One can use [JASP](https://jasp-stats.org/) to conduct Baysian regression analysis with interaction terms, but sadly it's post-processing capabilities are quite limited (at least to me).
 
-In this post I will show, how to easily and in just a few steps fit Bayesian moderation model in R. As some of my colleagues admitted lack of R package that would replace PROCESS is one of the major factors that restrains them from swapping SPSS with R. Actually there are certain packages that aspire to replace PROCESS in R. Here, however I would to show you that you don't need to use a specialized package and you can go on with a quite general one - `brms`. 
+In this post I will show, how to easily and in just a few steps fit Bayesian moderation model in R. As some of my colleagues admitted lack of R package that would replace PROCESS is one of the major factors that restrains them from swapping SPSS with R. Actually there are certain packages that aspire to replace PROCESS in R. Here, however I would to show you that you don't need to use a specialized package and you can go on with a quite general one - `brms`.
 
-Lets start with something relatively simple and easy to follow.
+## Background
 
-## Continuous and categorical predictors
+First, I will introduce some basic concepts. This is not a formal introduction, it is not systematic or exhaustive. This is just a small recap for those who have already underataken some course on linear models and Bayesian statistics.
+
+Within the Bayesian approach, we are interested in the so called subjective probability associated with some parameters of interest, given some data that we have observed. For example, how large support a new political party has, given that in some poll 45 participants out of 1000 declared voting for such party. The poll data informs us that it is somewhere around 5%. This subjective probability is called posterior.
+
+Now lets introduce the essence of Bayesianism. Suppose, that prior to viewing the results of this poll, you saw yet another (conducted rougly in the same week), that gave this new political party a support of 15%. Should you include this prior knowledge when drawing conclusion from the poll that you see now? It is quite natural to update your belief, i.e. if previously the support was 15% and the data indicates 5% the perhaps it is somewhere in the middle (depending on how you weight prior and current knowledge).
+
+This weighting can be formalized under the infamous Bayes theorem:
+
+$$p(\theta | \mathcal{D}) \sim p(\mathcal{D}|\theta)\times p(\theta)$$
+Here, *posterior* $p(\theta)$ refers to our updated beliefs. $p(\theta)$ refers to our prior beliefs, hence it is called *prior*. $p(\mathcal{D}|\theta)$ is the part where updating takes part, it associated with new information and it is called *likelihood*. $\theta$ and $\mathcal{D}$ refer to parameter values and data respectively.
+
+In the context of linear regression (either with or without interaction terms).
+
+$$p(\theta | y, X) \sim p(y | \theta, X) \times p(\theta)$$
+
+$\theta$ refers here to all parameters that are included in the model, i.e. regression coefficients and model error, lets write them as $\theta = (\beta, \sigma)$. $y$ is our outcome variable and $X$ is our model design matrix. Lets examine how $X$ looks like in the case of moderation analysis (i.e. regression with interaction). Lets say that for each individual, we obtained measures of two variable each valued either $-2$ or $2$. Suppose we have 4 individals with all possible combinations of the variables. Our design matrix is then:
+
+$$X = \begin{bmatrix}
+      1 & -2 & -2 &  4 \\
+      1 & -2 &  2 & -4 \\
+      1 &  2 & -2 & -4 \\
+      1 &  2 &  2 &  4
+      \end{bmatrix}
+$$
+
+The first colum refers to our regression intercept, it is just a column of ones. We put values of our variables in column 2 and 3. The fourth column refers to our interaction term. It is construed for each individual by multiplying values of the two observed variables, e.g. $-2 \times 2 = -4$. Each column has its regression coefficient. 
+
+Now, we can write our regression equation (using matrix notation) as:
+
+$$y = X\beta + \epsilon$$
+
+Or:
+
+$$y = \mathcal{N}(X\beta,\ \sigma)$$
+
+Where $\sigma = \sqrt{Var(\epsilon)}$ and $\mathcal{N}$ means that we assume residuals to be distributed as Normal (later I will show how we can modify this assumption) with mean equal to $X\beta$ and standard deviation equal to $\sigma$.
+
+Without matrix notation, we would write an equation with interaction as:
+
+$$y_i = \hat{y_i} + \epsilon_i$$
+
+$$\hat{y_i} = \beta_1 + \beta_2x_{i2} + \beta_3x_{i3} + \beta_4x_{i2}x_{i3}$$
+
+Lets reframe this equation:
+
+$$\hat{y_i} = (\beta_1 + \beta_3x_{i3}) + (\beta_2 + \beta_4x_{i3})x_{i2}$$
+
+By grouping the terms under parentheses we obtained a simple regression equation, which shows us that effect of $x_2$ (focal predictor) on $y$ (i.e. the line slope and intercept) depends on the values of $x_3$ (moderator). We will use this fact later when we will conduct simple slope analysis.
+
+## Example
+
+Now, Lets start with something relatively simple and easy to follow.
 
 In this post I will extensively use `tidyverse`. 
 
@@ -85,21 +136,61 @@ We can start with printing summary of posterior distribution of our model's coef
 ```{r}
 fit1 %>% 
   posterior_summary() %>% 
-  knitr::kable(digits = 2)
+  broom::tidy() %>% 
+  filter(str_detect(.rownames, "^[b|si]")) %>% 
+  mutate_if(is.numeric, round, digits= 3) %>% 
+  mutate(.rownames = str_replace(.rownames, "^b_", "")) %>% 
+  rename(Parameter = .rownames) %>% 
+  knitr::kable()
 ```
 
 Compare it to our prior distribution.
 
 ```{r}
-prior_summary(fit1)
+prior_summary(fit1) %>% 
+  select(prior:coef) %>% 
+  knitr::kable()
 ```
 
+To better understand our prior assumptions, it is worth to summarise sampled prior distribution.  
 
-Here we print simple slopes.
+```{r}
+fit1 %>% 
+  posterior_summary() %>% 
+  broom::tidy() %>% 
+  filter(str_detect(.rownames, "^prior")) %>% 
+  mutate_if(is.numeric, round, digits= 3) %>% 
+  rename(Parameter = .rownames) %>% 
+  knitr::kable()
+```
+
+From the table, we can see that prior to analysing the data we expected regression coefficients to be somewhere between -20 to 20. Similarly, we expected sigma (standard deviation of the regression residuals) to be within a range 0.3 to 40.6. 
+
+Sometimes you may find these prior values unplausible, i.e. too small or too large. In such instance, it is good to repeat the analysis several times, each time with different prior distribution, and examine how this affects your posterior results. This approach is called `sensitivity analysis`. If the results hold under varying prior choices we may say that it is robust.
+
+In my field (social psychology), after finding significant interaction, we usually want to understand it's meaning. This can be approach in two ways.
+
+The first is graphical analysis and plotting model predictions. In second approach, we test the value of the focal predictor parameter under different values of the moderating variable. 
+
+Lets say we are interested in the effect of partner status (low vs. high) for individuals with varying levels of F scores. We can plot such comparisons for different values of the F score (usually mean and +/- SD, but you can use any reasonable values).
 
 ```{r}
 marginal_effects(fit1, "partner.status:fscore_c")
 ```
+
+In the second approach, we test parameters of partner status for some fixed values of F score. In the table you can find the results. The `Star` indicates whether 95% credible interval of the sampled distribution does not contain 0. The `Evid.Ratio` column is Bayes Factor (computed via the Savage-Dickey density ratio method). Here it estimates the strength of evidence that the effect is equal to 0. If you would like to examine the ratio in favor of the alternative hypothesis (the effect is different from 0), you can simply check the revers `1/Evid.Ratio`. For example, `Evid.Ratio` of 0.002 indicates that the strength of evidence in favor of alternative hypothesis is equal to 500. The `Post.Prob` is a probability that the effect is 0. If you would like to calculate probability that the effect is not 0, you can simply calculate `1-Post.Prob`.
+
+```{r}
+ss1 <- hypothesis(fit1, c(high_F_score="partner.status1 + partner.status1:fscore_c = 0",
+                   medium_F_score="partner.status1 = 0",
+                   low_F_score="partner.status1 - partner.status1:fscore_c = 0"))
+
+ss1$hypothesis %>% 
+  knitr::kable(digits = 3)
+```
+
+If you would like to find the effect of F score given different values of partner status, the analysis is straightforward.
+
 
 ```{r}
 marginal_effects(fit1, "fscore_c:partner.status")
@@ -107,9 +198,13 @@ marginal_effects(fit1, "fscore_c:partner.status")
 
 We print the results of simple slopes analysis.
 
-```{r}
-hypothesis(fit1, c(highF="partner.status1 + partner.status1:fscore_c = 0",
-                   mediumF="partner.status1 = 0",
-                   lowF="partner.status1 - partner.status1:fscore_c = 0"))
-```
 
+
+
+```{r}
+ss2 <- hypothesis(fit1, c(high_partner_status="fscore_c + partner.status1:fscore_c = 0",
+                          low_partner_status="fscore_c - partner.status1:fscore_c = 0"))
+
+ss2$hypothesis %>% 
+  knitr::kable(digits = 3)
+```

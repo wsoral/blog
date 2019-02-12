@@ -4,7 +4,7 @@ author: "Wiktor Soral"
 slug: test
 categories: []
 tags: ['Bayesian']
-date: "7 02 2019"
+date: "2019-02-11"
 ---
 
 
@@ -12,9 +12,40 @@ date: "7 02 2019"
 <p><em>This post is the first of a series of short tutorials on how to approach statistical analyses common among social psychologist using Bayesian approach and R package - brms</em></p>
 <p>Moderation analysis is one the most widely used tools to approach interactions in regression models with at least 1 continuous term. Its popularity has outbursted since the release of an SPSS/SAS macro <a href="https://www.processmacro.org/">PROCESS</a>. PROCESS is easy to use and allows to fit a variety of models. However, it lacks certain capabilities (like ability to fit multilevel models or generalized regression models or mix of both). Also PROCESS cannot handle Bayesian moderation analysis. One can use <a href="https://jasp-stats.org/">JASP</a> to conduct Baysian regression analysis with interaction terms, but sadly it’s post-processing capabilities are quite limited (at least to me).</p>
 <p>In this post I will show, how to easily and in just a few steps fit Bayesian moderation model in R. As some of my colleagues admitted lack of R package that would replace PROCESS is one of the major factors that restrains them from swapping SPSS with R. Actually there are certain packages that aspire to replace PROCESS in R. Here, however I would to show you that you don’t need to use a specialized package and you can go on with a quite general one - <code>brms</code>.</p>
-<p>Lets start with something relatively simple and easy to follow.</p>
-<div id="continuous-and-categorical-predictors" class="section level2">
-<h2>Continuous and categorical predictors</h2>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>First, I will introduce some basic concepts. This is not a formal introduction, it is not systematic or exhaustive. This is just a small recap for those who have already underataken some course on linear models and Bayesian statistics.</p>
+<p>Within the Bayesian approach, we are interested in the so called subjective probability associated with some parameters of interest, given some data that we have observed. For example, how large support a new political party has, given that in some poll 45 participants out of 1000 declared voting for such party. The poll data informs us that it is somewhere around 5%. This subjective probability is called posterior.</p>
+<p>Now lets introduce the essence of Bayesianism. Suppose, that prior to viewing the results of this poll, you saw yet another (conducted rougly in the same week), that gave this new political party a support of 15%. Should you include this prior knowledge when drawing conclusion from the poll that you see now? It is quite natural to update your belief, i.e. if previously the support was 15% and the data indicates 5% the perhaps it is somewhere in the middle (depending on how you weight prior and current knowledge).</p>
+<p>This weighting can be formalized under the infamous Bayes theorem:</p>
+<p><span class="math display">\[p(\theta | \mathcal{D}) \sim p(\mathcal{D}|\theta)\times p(\theta)\]</span>
+Here, <em>posterior</em> <span class="math inline">\(p(\theta)\)</span> refers to our updated beliefs. <span class="math inline">\(p(\theta)\)</span> refers to our prior beliefs, hence it is called <em>prior</em>. <span class="math inline">\(p(\mathcal{D}|\theta)\)</span> is the part where updating takes part, it associated with new information and it is called <em>likelihood</em>. <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\mathcal{D}\)</span> refer to parameter values and data respectively.</p>
+<p>In the context of linear regression (either with or without interaction terms).</p>
+<p><span class="math display">\[p(\theta | y, X) \sim p(y | \theta, X) \times p(\theta)\]</span></p>
+<p><span class="math inline">\(\theta\)</span> refers here to all parameters that are included in the model, i.e. regression coefficients and model error, lets write them as <span class="math inline">\(\theta = (\beta, \sigma)\)</span>. <span class="math inline">\(y\)</span> is our outcome variable and <span class="math inline">\(X\)</span> is our model design matrix. Lets examine how <span class="math inline">\(X\)</span> looks like in the case of moderation analysis (i.e. regression with interaction). Lets say that for each individual, we obtained measures of two variable each valued either <span class="math inline">\(-2\)</span> or <span class="math inline">\(2\)</span>. Suppose we have 4 individals with all possible combinations of the variables. Our design matrix is then:</p>
+<p><span class="math display">\[X = \begin{bmatrix}
+      1 &amp; -2 &amp; -2 &amp;  4 \\
+      1 &amp; -2 &amp;  2 &amp; -4 \\
+      1 &amp;  2 &amp; -2 &amp; -4 \\
+      1 &amp;  2 &amp;  2 &amp;  4
+      \end{bmatrix}
+\]</span></p>
+<p>The first colum refers to our regression intercept, it is just a column of ones. We put values of our variables in column 2 and 3. The fourth column refers to our interaction term. It is construed for each individual by multiplying values of the two observed variables, e.g. <span class="math inline">\(-2 \times 2 = -4\)</span>. Each column has its regression coefficient.</p>
+<p>Now, we can write our regression equation (using matrix notation) as:</p>
+<p><span class="math display">\[y = X\beta + \epsilon\]</span></p>
+<p>Or:</p>
+<p><span class="math display">\[y = \mathcal{N}(X\beta,\ \sigma)\]</span></p>
+<p>Where <span class="math inline">\(\sigma = \sqrt{Var(\epsilon)}\)</span> and <span class="math inline">\(\mathcal{N}\)</span> means that we assume residuals to be distributed as Normal (later I will show how we can modify this assumption) with mean equal to <span class="math inline">\(X\beta\)</span> and standard deviation equal to <span class="math inline">\(\sigma\)</span>.</p>
+<p>Without matrix notation, we would write an equation with interaction as:</p>
+<p><span class="math display">\[y_i = \hat{y_i} + \epsilon_i\]</span></p>
+<p><span class="math display">\[\hat{y_i} = \beta_1 + \beta_2x_{i2} + \beta_3x_{i3} + \beta_4x_{i2}x_{i3}\]</span></p>
+<p>Lets reframe this equation:</p>
+<p><span class="math display">\[\hat{y_i} = (\beta_1 + \beta_3x_{i3}) + (\beta_2 + \beta_4x_{i3})x_{i2}\]</span></p>
+<p>By grouping the terms under parentheses we obtained a simple regression equation, which shows us that effect of <span class="math inline">\(x_2\)</span> (focal predictor) on <span class="math inline">\(y\)</span> (i.e. the line slope and intercept) depends on the values of <span class="math inline">\(x_3\)</span> (moderator). We will use this fact later when we will conduct simple slope analysis.</p>
+</div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>Now, Lets start with something relatively simple and easy to follow.</p>
 <p>In this post I will extensively use <code>tidyverse</code>.</p>
 <pre class="r"><code># install.packages(&quot;tidyverse&quot;)
 # install.packages(&quot;carData&quot;)
@@ -61,11 +92,16 @@ fit1 &lt;-
 <p>We can start with printing summary of posterior distribution of our model’s coefficients.</p>
 <pre class="r"><code>fit1 %&gt;% 
   posterior_summary() %&gt;% 
-  knitr::kable(digits = 2)</code></pre>
+  broom::tidy() %&gt;% 
+  filter(str_detect(.rownames, &quot;^[b|si]&quot;)) %&gt;% 
+  mutate_if(is.numeric, round, digits= 3) %&gt;% 
+  mutate(.rownames = str_replace(.rownames, &quot;^b_&quot;, &quot;&quot;)) %&gt;% 
+  rename(Parameter = .rownames) %&gt;% 
+  knitr::kable()</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th></th>
+<th align="left">Parameter</th>
 <th align="right">Estimate</th>
 <th align="right">Est.Error</th>
 <th align="right">Q2.5</th>
@@ -74,98 +110,225 @@ fit1 &lt;-
 </thead>
 <tbody>
 <tr class="odd">
-<td>b_Intercept</td>
-<td align="right">12.14</td>
-<td align="right">0.71</td>
-<td align="right">10.71</td>
-<td align="right">13.58</td>
+<td align="left">Intercept</td>
+<td align="right">12.141</td>
+<td align="right">0.712</td>
+<td align="right">10.681</td>
+<td align="right">13.606</td>
 </tr>
 <tr class="even">
-<td>b_partner.status1</td>
-<td align="right">2.12</td>
-<td align="right">0.72</td>
-<td align="right">0.74</td>
-<td align="right">3.52</td>
+<td align="left">partner.status1</td>
+<td align="right">2.132</td>
+<td align="right">0.709</td>
+<td align="right">0.785</td>
+<td align="right">3.550</td>
 </tr>
 <tr class="odd">
-<td>b_fscore_c</td>
-<td align="right">-0.29</td>
-<td align="right">0.72</td>
-<td align="right">-1.73</td>
-<td align="right">1.12</td>
+<td align="left">fscore_c</td>
+<td align="right">-0.289</td>
+<td align="right">0.709</td>
+<td align="right">-1.688</td>
+<td align="right">1.073</td>
 </tr>
 <tr class="even">
-<td>b_partner.status1:fscore_c</td>
-<td align="right">-1.85</td>
-<td align="right">0.72</td>
-<td align="right">-3.25</td>
-<td align="right">-0.41</td>
+<td align="left">partner.status1:fscore_c</td>
+<td align="right">-1.851</td>
+<td align="right">0.716</td>
+<td align="right">-3.292</td>
+<td align="right">-0.435</td>
 </tr>
 <tr class="odd">
-<td>sigma</td>
-<td align="right">4.70</td>
-<td align="right">0.55</td>
-<td align="right">3.78</td>
-<td align="right">5.95</td>
-</tr>
-<tr class="even">
-<td>prior_b</td>
-<td align="right">-0.11</td>
-<td align="right">9.85</td>
-<td align="right">-19.02</td>
-<td align="right">19.07</td>
-</tr>
-<tr class="odd">
-<td>prior_sigma</td>
-<td align="right">11.33</td>
-<td align="right">13.44</td>
-<td align="right">0.36</td>
-<td align="right">44.93</td>
-</tr>
-<tr class="even">
-<td>lp__</td>
-<td align="right">-147.04</td>
-<td align="right">1.75</td>
-<td align="right">-151.48</td>
-<td align="right">-144.79</td>
+<td align="left">sigma</td>
+<td align="right">4.703</td>
+<td align="right">0.549</td>
+<td align="right">3.797</td>
+<td align="right">5.905</td>
 </tr>
 </tbody>
 </table>
 <p>Compare it to our prior distribution.</p>
-<pre class="r"><code>prior_summary(fit1)</code></pre>
-<pre><code>##                  prior     class                     coef group resp dpar
-## 1        normal(0, 10)         b                                         
-## 2                              b                 fscore_c                
-## 3                              b          partner.status1                
-## 4                              b partner.status1:fscore_c                
-## 5 student_t(3, 12, 10) Intercept                                         
-## 6  student_t(3, 0, 10)     sigma                                         
-##   nlpar bound
-## 1            
-## 2            
-## 3            
-## 4            
-## 5            
-## 6</code></pre>
-<p>Here we print simple slopes.</p>
+<pre class="r"><code>prior_summary(fit1) %&gt;% 
+  select(prior:coef) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">prior</th>
+<th align="left">class</th>
+<th align="left">coef</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">normal(0, 10)</td>
+<td align="left">b</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">b</td>
+<td align="left">fscore_c</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">b</td>
+<td align="left">partner.status1</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">b</td>
+<td align="left">partner.status1:fscore_c</td>
+</tr>
+<tr class="odd">
+<td align="left">student_t(3, 12, 10)</td>
+<td align="left">Intercept</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">student_t(3, 0, 10)</td>
+<td align="left">sigma</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>To better understand our prior assumptions, it is worth to summarise sampled prior distribution.</p>
+<pre class="r"><code>fit1 %&gt;% 
+  posterior_summary() %&gt;% 
+  broom::tidy() %&gt;% 
+  filter(str_detect(.rownames, &quot;^prior&quot;)) %&gt;% 
+  mutate_if(is.numeric, round, digits= 3) %&gt;% 
+  rename(Parameter = .rownames) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Parameter</th>
+<th align="right">Estimate</th>
+<th align="right">Est.Error</th>
+<th align="right">Q2.5</th>
+<th align="right">Q97.5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">prior_b</td>
+<td align="right">-0.264</td>
+<td align="right">10.137</td>
+<td align="right">-20.094</td>
+<td align="right">19.251</td>
+</tr>
+<tr class="even">
+<td align="left">prior_sigma</td>
+<td align="right">10.826</td>
+<td align="right">11.872</td>
+<td align="right">0.354</td>
+<td align="right">42.077</td>
+</tr>
+</tbody>
+</table>
+<p>From the table, we can see that prior to analysing the data we expected regression coefficients to be somewhere between -20 to 20. Similarly, we expected sigma (standard deviation of the regression residuals) to be within a range 0.3 to 40.6.</p>
+<p>Sometimes you may find these prior values unplausible, i.e. too small or too large. In such instance, it is good to repeat the analysis several times, each time with different prior distribution, and examine how this affects your posterior results. This approach is called <code>sensitivity analysis</code>. If the results hold under varying prior choices we may say that it is robust.</p>
+<p>In my field (social psychology), after finding significant interaction, we usually want to understand it’s meaning. This can be approach in two ways.</p>
+<p>The first is graphical analysis and plotting model predictions. In second approach, we test the value of the focal predictor parameter under different values of the moderating variable.</p>
+<p>Lets say we are interested in the effect of partner status (low vs. high) for individuals with varying levels of F scores. We can plot such comparisons for different values of the F score (usually mean and +/- SD, but you can use any reasonable values).</p>
 <pre class="r"><code>marginal_effects(fit1, &quot;partner.status:fscore_c&quot;)</code></pre>
-<p><img src="/post/rmarkdown_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
-<pre class="r"><code>marginal_effects(fit1, &quot;fscore_c:partner.status&quot;)</code></pre>
 <p><img src="/post/rmarkdown_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>In the second approach, we test parameters of partner status for some fixed values of F score. In the table you can find the results. The <code>Star</code> indicates whether 95% credible interval of the sampled distribution does not contain 0. The <code>Evid.Ratio</code> column is Bayes Factor (computed via the Savage-Dickey density ratio method). Here it estimates the strength of evidence that the effect is equal to 0. If you would like to examine the ratio in favor of the alternative hypothesis (the effect is different from 0), you can simply check the revers <code>1/Evid.Ratio</code>. For example, <code>Evid.Ratio</code> of 0.002 indicates that the strength of evidence in favor of alternative hypothesis is equal to 500. The <code>Post.Prob</code> is a probability that the effect is 0. If you would like to calculate probability that the effect is not 0, you can simply calculate <code>1-Post.Prob</code>.</p>
+<pre class="r"><code>ss1 &lt;- hypothesis(fit1, c(high_F_score=&quot;partner.status1 + partner.status1:fscore_c = 0&quot;,
+                   medium_F_score=&quot;partner.status1 = 0&quot;,
+                   low_F_score=&quot;partner.status1 - partner.status1:fscore_c = 0&quot;))
+
+ss1$hypothesis %&gt;% 
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Hypothesis</th>
+<th align="right">Estimate</th>
+<th align="right">Est.Error</th>
+<th align="right">CI.Lower</th>
+<th align="right">CI.Upper</th>
+<th align="right">Evid.Ratio</th>
+<th align="right">Post.Prob</th>
+<th align="left">Star</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">high_F_score</td>
+<td align="right">0.282</td>
+<td align="right">1.010</td>
+<td align="right">-1.677</td>
+<td align="right">2.271</td>
+<td align="right">14.145</td>
+<td align="right">0.934</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">medium_F_score</td>
+<td align="right">2.132</td>
+<td align="right">0.709</td>
+<td align="right">0.785</td>
+<td align="right">3.550</td>
+<td align="right">0.243</td>
+<td align="right">0.195</td>
+<td align="left">*</td>
+</tr>
+<tr class="odd">
+<td align="left">low_F_score</td>
+<td align="right">3.983</td>
+<td align="right">1.006</td>
+<td align="right">2.091</td>
+<td align="right">5.969</td>
+<td align="right">0.014</td>
+<td align="right">0.014</td>
+<td align="left">*</td>
+</tr>
+</tbody>
+</table>
+<p>If you would like to find the effect of F score given different values of partner status, the analysis is straightforward.</p>
+<pre class="r"><code>marginal_effects(fit1, &quot;fscore_c:partner.status&quot;)</code></pre>
+<p><img src="/post/rmarkdown_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p>We print the results of simple slopes analysis.</p>
-<pre class="r"><code>hypothesis(fit1, c(highF=&quot;partner.status1 + partner.status1:fscore_c = 0&quot;,
-                   mediumF=&quot;partner.status1 = 0&quot;,
-                   lowF=&quot;partner.status1 - partner.status1:fscore_c = 0&quot;))</code></pre>
-<pre><code>## Hypothesis Tests for class b:
-##   Hypothesis Estimate Est.Error CI.Lower CI.Upper Evid.Ratio Post.Prob
-## 1      highF     0.27      1.01    -1.73     2.30      13.80      0.93
-## 2    mediumF     2.12      0.72     0.74     3.52       0.20      0.16
-## 3       lowF     3.98      1.02     1.99     5.98       0.01      0.01
-##   Star
-## 1     
-## 2    *
-## 3    *
-## ---
-## &#39;*&#39;: The expected value under the hypothesis lies outside the 95%-CI.
-## Posterior probabilities of point hypotheses assume equal prior probabilities.</code></pre>
+<pre class="r"><code>ss2 &lt;- hypothesis(fit1, c(high_partner_status=&quot;fscore_c + partner.status1:fscore_c = 0&quot;,
+                          low_partner_status=&quot;fscore_c - partner.status1:fscore_c = 0&quot;))
+
+ss2$hypothesis %&gt;% 
+  knitr::kable(digits = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Hypothesis</th>
+<th align="right">Estimate</th>
+<th align="right">Est.Error</th>
+<th align="right">CI.Lower</th>
+<th align="right">CI.Upper</th>
+<th align="right">Evid.Ratio</th>
+<th align="right">Post.Prob</th>
+<th align="left">Star</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">high_partner_status</td>
+<td align="right">-2.139</td>
+<td align="right">1.053</td>
+<td align="right">-4.230</td>
+<td align="right">-0.072</td>
+<td align="right">1.828</td>
+<td align="right">0.646</td>
+<td align="left">*</td>
+</tr>
+<tr class="even">
+<td align="left">low_partner_status</td>
+<td align="right">1.562</td>
+<td align="right">0.960</td>
+<td align="right">-0.351</td>
+<td align="right">3.442</td>
+<td align="right">3.828</td>
+<td align="right">0.793</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
 </div>
